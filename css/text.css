@@ -1,0 +1,64 @@
+@import url(http://fonts.googleapis.com/css?family=Electrolize);
+
+body {
+	padding: 0;
+	margin: 0;
+	background: #999;
+}
+
+#inner {
+	background: #CCC;
+	border-radius: 4px;
+	box-shadow: 0 0 6px -2px black, 0 0 45px -20px black;
+	padding: 5px;
+	left: 50%;
+	margin-left: -357px;
+	margin-top: -357px;
+	position: absolute;
+	top: 50%;
+}
+
+#store {
+	width: 715px;
+	height: 715px;
+}
+
+.inside {
+	width: 21px;
+	height: 21px;
+	float: left;
+	color: #666;
+	text-align: center;
+	font-family: 'Electrolize', sans-serif;
+	line-height: 21px;
+}
+
+.inside:nth-child(even) {
+	background: rgba(0, 0, 0, 0.05);
+}
+
+.inside:hover {
+	background: #A62000;
+	color: #FFF;
+}
+
+.text {
+	float: left;
+	margin-left: 5px;
+	margin-bottom: 5px;
+	padding: 6px;
+	width: 63px;
+	height: 63px;
+	border: 0;
+	background: rgba(0, 0, 0, 0.1);
+	box-shadow: inset 0 0 8px 0px rgba(0, 0, 0, 0.8);
+}
+
+.text:nth-child(9n -8) {
+	margin-left: 0px;
+	margin-bottom: 5px;
+}
+
+.text:nth-child(n + 73) {
+	margin-bottom: 0px;
+}
