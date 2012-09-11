@@ -75,16 +75,31 @@ body {
 	float: left;
 	color: #666;
 	text-align: center;
+	line-height: 21px;
 }
 
 .inside:nth-child(even) {
-	background: rgba(0, 0, 0, 0.05);
+	background: rgba(0, 0, 0, 0.025);
 }
 
 .inside:hover {
 	background: #A62000;
 	color: #FFF;
 	cursor:	pointer;
+}
+
+.fill {
+	width: 63px;
+	height: 63px;
+	float: left;
+	font-size: 63px;
+	color: #666;
+	text-align: center;
+	line-height: 66px;
+}
+
+.error {
+	background: rgba(166, 32, 0, 0.4);
 }
 
 .text {
