@@ -98,10 +98,6 @@ body {
 	line-height: 66px;
 }
 
-.error {
-	background: rgba(166, 32, 0, 0.4);
-}
-
 .text {
 	float: left;
 	margin-left: 5px;
@@ -121,4 +117,8 @@ body {
 
 .text:nth-child(n + 73) {
 	margin-bottom: 0px;
+}
+
+.error {
+	background: rgba(166, 32, 0, 0.4);
 }
