@@ -4,6 +4,15 @@ body {
 	padding: 0;
 	margin: 0;
 	background: #999;
+	font-family: 'Electrolize', sans-serif;
+}
+
+#hold {
+	left: 50%;
+	margin-left: -357px;
+	margin-top: -400px;
+	position: absolute;
+	top: 50%;
 }
 
 #inner {
@@ -11,16 +20,53 @@ body {
 	border-radius: 4px;
 	box-shadow: 0 0 6px -2px black, 0 0 45px -20px black;
 	padding: 5px;
-	left: 50%;
-	margin-left: -357px;
-	margin-top: -357px;
-	position: absolute;
-	top: 50%;
 }
 
 #store {
 	width: 715px;
 	height: 715px;
+}
+
+#controls {
+	width: 715px;
+	height: 60px;
+	margin-top: 10px;
+	background: #CCC;
+	border-radius: 4px;
+	box-shadow: 0 0 6px -2px black, 0 0 45px -20px black;
+	padding: 5px;
+}
+
+#solve {
+	height: 100%;
+	width: 200px;
+	background: #3E7B3E;
+	border-radius: 2px;
+	float: left;
+	text-align: center;
+	font-size: 30px;
+	line-height: 60px;
+}
+
+#solve:hover {
+	color: #FFF;
+	cursor:	pointer;
+}
+
+#clear {
+	height: 100%;
+	width: 200px;
+	background: #A62000;
+	border-radius: 2px;
+	float: right;
+	text-align: center;
+	font-size: 30px;
+	line-height: 60px;
+}
+
+#clear:hover {
+	color: #FFF;
+	cursor:	pointer;
 }
 
 .inside {
@@ -29,8 +75,6 @@ body {
 	float: left;
 	color: #666;
 	text-align: center;
-	font-family: 'Electrolize', sans-serif;
-	line-height: 21px;
 }
 
 .inside:nth-child(even) {
@@ -40,6 +84,7 @@ body {
 .inside:hover {
 	background: #A62000;
 	color: #FFF;
+	cursor:	pointer;
 }
 
 .text {

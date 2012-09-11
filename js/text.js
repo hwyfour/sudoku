@@ -1,8 +1,12 @@
-var box;
+var listing;
+
+function clickButton(event) {
+	event.preventDefault();
+}
 
 window.onload = function() {
 	// window.addEventListener("keydown", motion, false);
-	box = document.getElementById("store");
+	listing = document.getElementById("store");
 	for (var i = 0; i < 81; i++) {
 		var pre = document.createElement("div");
 		pre.className = "text";
@@ -15,6 +19,8 @@ window.onload = function() {
 			ins.innerHTML = x + 1;
 			pre.appendChild(ins);
 		};
-		box.appendChild(pre);
+		listing.appendChild(pre);
 	};
+
+	listing.addEventListener("contextmenu", clickButton);
 }
