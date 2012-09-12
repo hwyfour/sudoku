@@ -1,5 +1,7 @@
 var listing;				//the main sudoku game panel
-var error = false;			//flag is true if there is a conflict
+var rowError = false;		//flag is true if there is a row conflict
+var columnError = false;	//flag is true if there is a column conflict
+var groupError = false;		//flag is true if there is a group conflict
 
 /* Simply adds the small 1-9 number selectors to
 * whatever parent is passed in. Each selector is
@@ -28,7 +30,7 @@ function renewSpace(event) {
 	var parent = event.currentTarget.parentNode;
 	parent.removeChild(parent.firstChild);
 	//repopulate the space
-	populateSpace(parent);
+	removedNoStructs(populateSpace(parent));
 }
 
 /* When a user selected a number, this function clears the small
@@ -38,7 +40,7 @@ function renewSpace(event) {
 */
 function clearSpace(event) {
 	//don't let the user select another number if there is already a conflict
-	if (!error) {
+	if (!rowError && !columnError && !groupError) {
 		var node = event.currentTarget;
 		var parent = node.parentNode;
 		//delete all the small number selectors
@@ -83,7 +85,10 @@ window.onload = function() {
 * DOM elements and a useful labelling convention: each space has an id that contains its mathematical
 * position on the board. This concession as a 'data structure' is given because it is a required part
 * of the page anyway, so there is no reason to not take advantage of it. To not use it would require
-* brute-force tactics which are of no interest to this project.
+* brute-force tactics which are of no interest to this project. Another decision is to record each of the
+* three conflict errors in different flags so when a user removes a conflicting choice, only the section
+* that was conflicting needs to be revalidated - not the row, column, and group that element was a part of.
+*
 * So, this section is an exercise in finding the most efficient algorithm to solve and validate a sudoku
 * board without the aid of advanced structures including even arrays and lists.
 */
@@ -93,15 +98,35 @@ window.onload = function() {
 	* highlight the row/column/group that is conflicting.
 	*/
 	function validateNoStructs(number, space) {
-		if( inRow(number, space) ) {
-			drawRow(space);
-		}
-		if( inColumn(number, space) ) {
-			drawColumn(space);
-		}
-		if( inGroup(number, space) ) {
-			drawGroup(space);
-		}
+		if( inRowNoStructs(number, space) ) {
+			drawRowNoStructs(space, on);
+		};
+		if( inColumnNoStructs(number, space) ) {
+			drawColumnNoStructs(space, on);
+		};
+		if( inGroupNoStructs(number, space) ) {
+			drawGroupNoStructs(space, on);
+		};
+	}
+
+	/* Every time a user removes a choice, this function is called which removes all of the
+	* conflicts based on the current row/column/group that the space is in. Then, the
+	* errors are cleared as there are no more conflicts.
+	*/
+	function removedNoStructs(space) {
+		if( rowError ) {
+			drawRowNoStructs(space, off);
+			rowError = false;
+		};
+		if( columnError ) {
+			drawColumnNoStructs(space, off);
+			columnError = false;
+		};
+		if( groupError ) {
+			drawGroupNoStructs(space, off);
+			groupError = false;
+		};
+
 	}
 
 	/* There are a couple of ways to check whether a new choice is already chosen in the group:
@@ -119,7 +144,7 @@ window.onload = function() {
 	*
 	*	to find the top-left corner element of the current group.
 	*/
-	function inGroup(number, space) {
+	function inGroupNoStructs(number, space) {
 		var x = parseInt(space.id[0]);	//the x coord of the selected space
 		var y = parseInt(space.id[1]);	//the y coord of the selected space
 		var cornerX = 3 * (Math.ceil(x/3) - 1) + 1;
@@ -143,7 +168,7 @@ window.onload = function() {
 						testNum = tempElem.firstChild.innerHTML;
 						//if it is the same as the new choice, there is a conflict
 						if (testNum === number) {
-							error = true;
+							groupError = true;
 							//record the element id that the new choice conflicts with
 							tempId = tempElem.id;
 						}
@@ -158,7 +183,7 @@ window.onload = function() {
 	* All it does is add the error class to every element in the group that
 	* space belongs to.
 	*/
-	function drawGroup(space) {
+	function drawGroupNoStructs(space, func) {
 		var x = parseInt(space.id[0]);	//the x coord of the selected space
 		var y = parseInt(space.id[1]);	//the y coord of the selected space
 		var cornerX = 3 * (Math.ceil(x/3) - 1) + 1;
@@ -169,8 +194,7 @@ window.onload = function() {
 			tempX = cornerX + ix;					//start from the leftmost space
 			for (var iy = 0; iy < 3; iy++) {		//iterate vertically in the group
 				tempY = cornerY + iy;				//from the top down
-				//add the class 'error'
-				document.getElementById( tempX + "" + tempY ).className += " error";
+				func(tempX, tempY);
 			}
 		}
 	}
@@ -180,7 +204,7 @@ window.onload = function() {
 	* in the row. Without data structures, the best algorithm we can hope for in this
 	* case is one that iterates over the element ID to traverse only the current row.
 	*/
-	function inRow(number, space) {
+	function inRowNoStructs(number, space) {
 		var testNum = 0;
 		var y = parseInt(space.id[1]);	//the row number to iterate over
 		var tempElem;
@@ -196,7 +220,7 @@ window.onload = function() {
 					testNum = tempElem.firstChild.innerHTML;
 					//if it is the same as the new choice, there is a conflict
 					if (testNum === number) {
-						error = true;
+						rowError = true;
 						//record the element id that the new choice conflicts with
 						tempId = tempElem.id;
 					}
@@ -210,11 +234,10 @@ window.onload = function() {
 	* All it does is add the error class to every element in the row that
 	* space belongs to.
 	*/
-	function drawRow(space) {
+	function drawRowNoStructs(space, func) {
 		var y = parseInt(space.id[1]);	//the row number to iterate over
 		for (var i = 1; i <= 9; i++) {
-			//add the class 'error'
-			document.getElementById("" + i + y).className += " error";
+			func(i, y);
 		};
 	}
 
@@ -223,7 +246,7 @@ window.onload = function() {
 	* in the column. Without data structures, the best algorithm we can hope for in this
 	* case is one that iterates over the element ID to traverse only the current column.
 	*/
-	function inColumn(number, space) {
+	function inColumnNoStructs(number, space) {
 		var testNum = 0;
 		var x = parseInt(space.id[0]);	//the column number to iterate over
 		var tempElem;
@@ -239,7 +262,7 @@ window.onload = function() {
 					testNum = tempElem.firstChild.innerHTML;
 					//if it is the same as the new choice, there is a conflict
 					if (testNum === number) {
-						error = true;
+						columnError = true;
 						//record the element id that the new choice conflicts with
 						tempId = tempElem.id;
 					}
@@ -253,12 +276,21 @@ window.onload = function() {
 	* All it does is add the error class to every element in the column that
 	* space belongs to.
 	*/
-	function drawColumn(space) {
+	function drawColumnNoStructs(space, func) {
 		var x = parseInt(space.id[0]);	//the column number to iterate over
 		for (var i = 1; i <= 9; i++) {
-			//add the class 'error'
-			document.getElementById("" + x + i).className += " error";
+			func(x, i);
 		};
+	}
+
+	//adds the 'error' class to an element
+	function on(x, y) {
+		document.getElementById( x + "" + y ).className += " error";
+	}
+
+	//removes the 'error' class from an element
+	function off(x, y) {
+		document.getElementById( x + "" + y ).className = "text";
 	}
 
 /* =========== END OF PURE ALGORITHM VALIDATION ========================================================= */
