@@ -369,51 +369,6 @@ window.onload = function() {
 				}
 			}
 		}
-
-		// while (start_index < 81) {
-		// 	//pick the element at the start index
-		// 	tempId = "" + (start_index%9 + 1) + (Math.floor(start_index/9) + 1);
-		// 	start_index++;
-		// 	tempElem = document.getElementById(tempId);
-		// 	//if this element does not yet have a selection
-		// 	if (tempElem.firstChild.className !== "fill") {
-		// 		//pick a number from 1-9
-		// 		for (var i = 1; i < 10; i++) {
-		// 			//if it doesn't conflict
-		// 			if (!validateNoStructs(i, tempElem)) {
-		// 				//choose this number
-		// 				selectSpace(tempElem, i);
-		// 				//try and recurse
-		// 				alert("next");
-		// 				if(solveNoStructs_Recursive(start_index)) {
-		// 					return true;
-		// 				} else {
-		// 					revertSpace(tempElem);
-		// 				}
-		// 			}
-		// 		}
-		// 		//return false;	//no solution found
-		// 	}
-		// }
-		
-		
-
-		/*
-		while start_index <=81
-			pick the first available space
-				for each number 1-9
-					does it conflict?
-						yes?
-							pick next number
-						no?
-							select it as a candidate
-							try to solve the next space from this space + 1
-								fail?
-									deselect
-									pick next number
-								good?
-									return true
-		*/
 	}
 
 	function solveNoStructs_Iterative() {
