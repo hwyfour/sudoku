@@ -4,8 +4,7 @@ var columnError = false;	//flag is true if there is a column conflict
 var groupError = false;		//flag is true if there is a group conflict
 
 /* Simply adds the small 1-9 number selectors to
-* whatever parent is passed in. Each selector is
-* also assigned a listener that is outlined in clearSpace
+* whatever parent is passed in.
 */
 function populateSpace(parent) {
 	for (var x = 1; x <= 9; x++) {
@@ -13,7 +12,10 @@ function populateSpace(parent) {
 		ins.className = "inside";
 		ins.id = parent.id + "-" + x;
 		ins.innerHTML = x;
-		ins.addEventListener("click", clearSpace);
+		ins.addEventListener("click", userSelection);
+		ins.addEventListener("contextmenu", removeImpossible);
+		ins.onmouseover = ( function(n, m, o){ return function(){paintConflicts(n, m, o);} } )( x, parent, on );
+		ins.onmouseout = ( function(n, m, o){ return function(){paintConflicts(n, m, o);} } )( x, parent, off );
 		parent.appendChild(ins);
 	};
 	return parent;	//so the element can be acted on in the calling function
@@ -30,34 +32,54 @@ function renewSpace(event) {
 	var parent = event.currentTarget.parentNode;
 	parent.removeChild(parent.firstChild);
 	//repopulate the space
-	removedNoStructs(populateSpace(parent));
+	populateSpace(parent);
 }
 
-/* When a user selected a number, this function clears the small
-* number selectors and replaces them with the selected number. Then,
-* this number is validated to make sure it does not conflict with
-* other selections on the game board.
+/* The left-click event for a choice in a space.
+* If a choice does not conflict with that board,
+* the space is filled with that choice.
 */
-function clearSpace(event) {
-	//don't let the user select another number if there is already a conflict
-	if (!rowError && !columnError && !groupError) {
-		var node = event.currentTarget;
-		var parent = node.parentNode;
+function userSelection(event) {
+	var node = event.currentTarget;
+	var parent = node.parentNode;
+	var chosen = node.innerHTML;
+	//if this choice doesn't create a conflict
+	if (!validateNoStructs(chosen, parent)) {
 		//delete all the small number selectors
 		while (parent.firstChild) {
 			parent.removeChild(parent.firstChild);
 		};
 		//add the number selection to the space
-		var chosen = node.innerHTML;
 		var ins = document.createElement("div");
 		ins.className = "fill";
 		ins.innerHTML = chosen;
 		ins.addEventListener("contextmenu", renewSpace);
 		parent.appendChild(ins);
-
-		//calculate if it is a valid selection
-		validateNoStructs(chosen, parent);
 	}
+}
+
+/* When the solver decides on a number for a space, it updates the
+* space to show only that number with this function.
+*/
+function selectSpace(element, number) {
+	while (element.firstChild) {
+		element.removeChild(element.firstChild);
+	};
+	var ins = document.createElement("div");
+	ins.className = "fill";
+	ins.innerHTML = number;
+	ins.addEventListener("contextmenu", renewSpace);
+	element.appendChild(ins);
+}
+
+/* The right-click event for a choice in a space.
+* Simply removes that choice from the space.
+*/
+function removeImpossible(event) {
+	event.preventDefault();
+	var node = event.currentTarget;
+	var parent = node.parentNode;
+	parent.removeChild(node);
 }
 
 /* When the DOM loads, the main game panel is then filled with the 81
@@ -95,38 +117,34 @@ window.onload = function() {
 
 	/* Every time a user picks a number, this function is called which validates their pick
 	* based on the current row/column/group that the number is in. If a conflict is found,
-	* highlight the row/column/group that is conflicting.
+	* return true so the calling function knows a conflict was found.
 	*/
 	function validateNoStructs(number, space) {
 		if( inRowNoStructs(number, space) ) {
-			drawRowNoStructs(space, on);
+			return true;
 		};
 		if( inColumnNoStructs(number, space) ) {
-			drawColumnNoStructs(space, on);
+			return true;
 		};
 		if( inGroupNoStructs(number, space) ) {
-			drawGroupNoStructs(space, on);
+			return true;
 		};
+		return false;
 	}
 
-	/* Every time a user removes a choice, this function is called which removes all of the
-	* conflicts based on the current row/column/group that the space is in. Then, the
-	* errors are cleared as there are no more conflicts.
+	/* On every mouseover/out event, this function colours/clears
+	* whatever section there is a conflict in.
 	*/
-	function removedNoStructs(space) {
-		if( rowError ) {
-			drawRowNoStructs(space, off);
-			rowError = false;
+	function paintConflicts(number, space, func) {
+		if( inRowNoStructs(number, space) ) {
+			drawRowNoStructs(space, func);
 		};
-		if( columnError ) {
-			drawColumnNoStructs(space, off);
-			columnError = false;
+		if( inColumnNoStructs(number, space) ) {
+			drawColumnNoStructs(space, func);
 		};
-		if( groupError ) {
-			drawGroupNoStructs(space, off);
-			groupError = false;
+		if( inGroupNoStructs(number, space) ) {
+			drawGroupNoStructs(space, func);
 		};
-
 	}
 
 	/* There are a couple of ways to check whether a new choice is already chosen in the group:
@@ -162,16 +180,13 @@ window.onload = function() {
 				tempElem = document.getElementById( tempX + "" + tempY );
 				//if it doesn't contain a number selection, disregard it
 				if (tempElem.firstChild.className !== "inside") {
-					//don't consider the new selection in the validation
-					if (tempElem.id !== space.id) {
-						//get the number that is in the checked space
-						testNum = tempElem.firstChild.innerHTML;
-						//if it is the same as the new choice, there is a conflict
-						if (testNum === number) {
-							groupError = true;
-							//record the element id that the new choice conflicts with
-							tempId = tempElem.id;
-						}
+					//get the number that is in the checked space
+					testNum = tempElem.firstChild.innerHTML;
+					//if it is the same as the new choice, there is a conflict
+					if (testNum == number) {	//== because number is an int when passed by the mouseover function
+						groupError = true;
+						//record the element id that the new choice conflicts with
+						tempId = tempElem.id;
 					}
 				}
 			}
@@ -214,16 +229,13 @@ window.onload = function() {
 			tempElem = document.getElementById("" + i + y);
 			//if it doesn't contain a number selection, disregard it
 			if (tempElem.firstChild.className !== "inside") {
-				//don't consider the new selection in the validation
-				if (tempElem.id !== space.id) {
-					//get the number that is in the checked space
-					testNum = tempElem.firstChild.innerHTML;
-					//if it is the same as the new choice, there is a conflict
-					if (testNum === number) {
-						rowError = true;
-						//record the element id that the new choice conflicts with
-						tempId = tempElem.id;
-					}
+				//get the number that is in the checked space
+				testNum = tempElem.firstChild.innerHTML;
+				//if it is the same as the new choice, there is a conflict
+				if (testNum == number) {	//== because number is an int when passed by the mouseover function
+					rowError = true;
+					//record the element id that the new choice conflicts with
+					tempId = tempElem.id;
 				}
 			}
 		};
@@ -256,16 +268,13 @@ window.onload = function() {
 			tempElem = document.getElementById("" + x + i);
 			//if it doesn't contain a number selection, disregard it
 			if (tempElem.firstChild.className !== "inside") {
-				//don't consider the new selection in the validation
-				if (tempElem.id !== space.id) {
-					//get the number that is in the checked space
-					testNum = tempElem.firstChild.innerHTML;
-					//if it is the same as the new choice, there is a conflict
-					if (testNum === number) {
-						columnError = true;
-						//record the element id that the new choice conflicts with
-						tempId = tempElem.id;
-					}
+				//get the number that is in the checked space
+				testNum = tempElem.firstChild.innerHTML;
+				//if it is the same as the new choice, there is a conflict
+				if (testNum == number) {	//== because number is an int when passed by the mouseover function
+					columnError = true;
+					//record the element id that the new choice conflicts with
+					tempId = tempElem.id;
 				}
 			}
 		};
@@ -291,6 +300,14 @@ window.onload = function() {
 	//removes the 'error' class from an element
 	function off(x, y) {
 		document.getElementById( x + "" + y ).className = "text";
+	}
+
+	function solveNoStructs_Recursive() {
+
+	}
+
+	function solveNoStructs_Iterative() {
+
 	}
 
 /* =========== END OF PURE ALGORITHM VALIDATION ========================================================= */
