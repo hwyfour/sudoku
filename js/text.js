@@ -1,4 +1,6 @@
 var listing;				//the main sudoku game panel
+var iterativeButton;		//the iterative button
+var recursiveButton;		//the recursive button
 var rowError = false;		//flag is true if there is a row conflict
 var columnError = false;	//flag is true if there is a column conflict
 var groupError = false;		//flag is true if there is a group conflict
@@ -72,6 +74,17 @@ function selectSpace(element, number) {
 	element.appendChild(ins);
 }
 
+/* When the solver decides against a number for a space, it reverts
+* the space to the original.
+*/
+function revertSpace(parent) {
+	while (parent.firstChild) {
+		parent.removeChild(parent.firstChild);
+	};
+	//repopulate the space
+	populateSpace(parent);
+}
+
 /* The right-click event for a choice in a space.
 * Simply removes that choice from the space.
 */
@@ -96,6 +109,10 @@ window.onload = function() {
 		populateSpace(pre);
 		listing.appendChild(pre);
 	};
+	recursiveButton = document.getElementById("recursive");
+	recursiveButton.onclick = ( function(n){ return function(){solveNoStructs_Recursive(n);} } )(0);
+	iterativeButton = document.getElementById("iterative");
+	iterativeButton.addEventListener("click", solveNoStructs_Iterative);
 }
 
 /* =========== PURE ALGORITHM VALIDATION =========================================================
@@ -302,12 +319,138 @@ window.onload = function() {
 		document.getElementById( x + "" + y ).className = "text";
 	}
 
-	function solveNoStructs_Recursive() {
+	function solveNoStructs_Recursive(start_index) {
+		//pick the element at the start index
+		tempId = "" + (start_index%9 + 1) + (Math.floor(start_index/9) + 1);
+		tempElem = document.getElementById(tempId);
+		if (start_index === 80) {
+			//in the last space
+			if (tempElem.firstChild.className !== "fill") {
+				//pick a number from 1-9
+				for (var i = 1; i < 10; i++) {
+					//if it doesn't conflict
+					if (!validateNoStructs(i, tempElem)) {
+						//choose this number
+						selectSpace(tempElem, i);
+						return true;
+					}
+				}
+				tempId = "" + (start_index%9 + 1) + (Math.floor(start_index/9) + 1);
+				tempElem = document.getElementById(tempId);
+				revertSpace(tempElem);
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			if (tempElem.firstChild.className !== "fill") {
+				//pick a number from 1-9
+				for (var i = 1; i < 10; i++) {
+					//if it doesn't conflict
+					if (!validateNoStructs(i, tempElem)) {
+						//choose this number
+						selectSpace(tempElem, i);
+						//try and recurse
+						if(solveNoStructs_Recursive(start_index+1)) {
+							return true;
+						} else {
+							tempId = "" + (start_index%9 + 1) + (Math.floor(start_index/9) + 1);
+							tempElem = document.getElementById(tempId);
+							revertSpace(tempElem);
+						}
+					}
+				}
+				return false;
+			} else {
+				if(solveNoStructs_Recursive(start_index+1)) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
 
+		// while (start_index < 81) {
+		// 	//pick the element at the start index
+		// 	tempId = "" + (start_index%9 + 1) + (Math.floor(start_index/9) + 1);
+		// 	start_index++;
+		// 	tempElem = document.getElementById(tempId);
+		// 	//if this element does not yet have a selection
+		// 	if (tempElem.firstChild.className !== "fill") {
+		// 		//pick a number from 1-9
+		// 		for (var i = 1; i < 10; i++) {
+		// 			//if it doesn't conflict
+		// 			if (!validateNoStructs(i, tempElem)) {
+		// 				//choose this number
+		// 				selectSpace(tempElem, i);
+		// 				//try and recurse
+		// 				alert("next");
+		// 				if(solveNoStructs_Recursive(start_index)) {
+		// 					return true;
+		// 				} else {
+		// 					revertSpace(tempElem);
+		// 				}
+		// 			}
+		// 		}
+		// 		//return false;	//no solution found
+		// 	}
+		// }
+		
+		
+
+		/*
+		while start_index <=81
+			pick the first available space
+				for each number 1-9
+					does it conflict?
+						yes?
+							pick next number
+						no?
+							select it as a candidate
+							try to solve the next space from this space + 1
+								fail?
+									deselect
+									pick next number
+								good?
+									return true
+		*/
 	}
 
 	function solveNoStructs_Iterative() {
-
+		var change;
+		do {
+			change = false;
+			for (var i = 0; i < 81; i++) {
+				var pre = document.getElementById("" + (i%9 + 1) + (Math.floor(i/9) + 1));
+				var first = pre.firstChild;
+				if (first.className === "inside") {
+					//has some choices
+					var children = pre.childNodes;
+					for (var x = 0; x < children.length; x++) {
+						if (validateNoStructs(children[x].innerHTML, pre)) {
+							//there was a conflict, so remove the choice
+							pre.removeChild(children[x]);
+							x--;
+							change = true;
+						}
+					}
+					first = pre.firstChild;
+					if (first === pre.lastChild) {
+						/* Possibly, the user chose an option that at the time had
+						* no conflicts but was still incorrect. In this case, there
+						* will be no options for this space, so place an 'X' instead.
+						*/
+						if(first === null) {
+							selectSpace(pre, "X");
+						} else {
+							//there is a choice left, so make it the selection
+							selectSpace(pre, first.innerHTML);
+							change = true;
+						}
+					}
+				}
+			};
+		} while (change);
 	}
 
 /* =========== END OF PURE ALGORITHM VALIDATION ========================================================= */

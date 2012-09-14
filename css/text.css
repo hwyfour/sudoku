@@ -37,7 +37,7 @@ body {
 	padding: 5px;
 }
 
-#solve {
+#iterative {
 	height: 100%;
 	width: 200px;
 	background: #3E7B3E;
@@ -48,23 +48,24 @@ body {
 	line-height: 60px;
 }
 
-#solve:hover {
+#iterative:hover {
 	color: #FFF;
 	cursor:	pointer;
 }
 
-#clear {
+#recursive {
 	height: 100%;
 	width: 200px;
 	background: #A62000;
 	border-radius: 2px;
-	float: right;
+	margin-left: 5px;
+	float: left;
 	text-align: center;
 	font-size: 30px;
 	line-height: 60px;
 }
 
-#clear:hover {
+#recursive:hover {
 	color: #FFF;
 	cursor:	pointer;
 }
@@ -121,4 +122,8 @@ body {
 
 .error {
 	background: rgba(166, 32, 0, 0.4);
+}
+
+.new {
+	background: #876;
 }
